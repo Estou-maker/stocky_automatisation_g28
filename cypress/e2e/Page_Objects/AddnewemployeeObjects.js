@@ -14,6 +14,8 @@ const EmployeeElements = {
     Select_contract_type_trigger: 'span[id="contractType"]',
     contract_type_list: 'div[data-pc-section="listcontainer"]',
     btn_submit_btn: 'p-button[data-testid="btn-submit"]',
+    phone_number_input: 'input[data-testid="input-phone-number"]',
+    New_Employee_profile: 'div[data-testid="profile-container"]'
 }
 
 export default EmployeeElements
