@@ -10,13 +10,13 @@ When(`I send a get request to the api endpoint the response should be {int}`, (a
     // [When] Describes the action or event that triggers the scenario.
     cy.log('sending Get request to the api endpoint...')
     cy.request({
-        methode: 'GET',
+        method: 'GET',
         url: 'https://dogapi.dog/api/v2/breeds',
         headers: {
             'Content-type': 'application/json; charset=UTF-8',
-            
+
         }
-    }).then((response)=>{
+    }).then((response) => {
         expect(response.status).to.eq(arg0)
         expect(response.body).to.not.be.empty
         expect(response.body).to.have.property('data')
@@ -63,7 +63,21 @@ When(`I send a get request to the api endpoint the response should be {int}`, (a
 
         expect(second.attributes.female_weight.max).to.eq(25)
         expect(second.attributes.female_weight.min).to.eq(20)
+        
+        const names = response.body.data.map(b => b.attributes.name)
 
+        cy.log('Breeds list:\n' + names.map(n => `- ${n}`).join(`\n`))
 
+        const csvNames = response.body.data.map(b => b.attributes.name.replace(/"/g, '""')) // espace doubles quotes
+        const csv = csvNames.map(n => `"${n}"`).join(',') //mettre chaque nom entre doubles quotes et virgule
+
+        cy.writeFile('cypress/fixtures/dog-names.csv', csvNames.join('\n'))
+
+        cy.readFile('cypress/fixtures/dog-names.csv').then(fileContent => {
+            const lines = fileContent.split(/\r?\n/).map(l => l.trim()).filter(Boolean)
+            expect(lines).to.have.length(names.length)
+            expect(lines[0]).to.eq(names[0])
+        })
     })
+
 });
