@@ -21,8 +21,7 @@ When(`I send a get request to the api endpoint the response should be {int}`, (a
         expect(response.body).to.not.be.empty
         expect(response.body).to.have.property('data')
         expect(response.body.data).to.be.an('array').and.have.length.greaterThan(0)
-
-        expect(response.body).to.have.property('meta')
+        expect(response.body).to.have.property('meta')  
         expect(response.body.meta.pagination.current).to.eq(1)
         expect(response.body.meta.pagination.records).to.eq(283)
 
@@ -70,7 +69,7 @@ When(`I send a get request to the api endpoint the response should be {int}`, (a
 
         const csvNames = response.body.data.map(b => b.attributes.name.replace(/"/g, '""')) // espace doubles quotes
         const csv = csvNames.map(n => `"${n}"`).join(',') //mettre chaque nom entre doubles quotes et virgule
-
+        
         cy.writeFile('cypress/fixtures/dog-names.csv', csvNames.join('\n'))
 
         cy.readFile('cypress/fixtures/dog-names.csv').then(fileContent => {
@@ -78,6 +77,30 @@ When(`I send a get request to the api endpoint the response should be {int}`, (a
             expect(lines).to.have.length(names.length)
             expect(lines[0]).to.eq(names[0])
         })
-    })
 
-});
+
+        // Prepare array of {name, maxWeight}
+        const breeds = response.body.data.map(b => ({
+            name: b.attributes.name,
+            maxWeight: Math.max(b.attributes.male_weight?.max || 0, b.attributes.female_weight?.max || 0)
+        }))
+
+        // Sort by name (A-Z)
+        const sortedByName = [...breeds].sort((a, b) => a.name.localeCompare(b.name))
+        // Sort by max weight (desc)
+        const sortedByWeight = [...breeds].sort((a, b) => b.maxWeight - a.maxWeight)
+
+        // Log both sorts
+        cy.log('Breeds sorted by name (A-Z):\n' + sortedByName.map(b => `- ${b.name}: ${b.maxWeight}kg`).join('\n'))
+        cy.log('Breeds sorted by max weight (desc):\n' + sortedByWeight.map(b => `- ${b.name}: ${b.maxWeight}kg`).join('\n'))
+
+        // Write both sorts to the same CSV file with section headers
+        const header = 'Breed,MaxWeight(kg)';
+        const byNameSection = ['Sorted by Name', header, ...sortedByName.map(b => `${b.name},${b.maxWeight}`)].join('\n');
+        const byWeightSection = ['Sorted by Max Weight', header, ...sortedByWeight.map(b => `${b.name},${b.maxWeight}`)].join('\n');
+        const combined = byNameSection + '\n\n' + byWeightSection;
+        cy.writeFile('cypress/fixtures/dog-names-sorted.csv', combined);
+        })
+
+        
+    })
