@@ -9,9 +9,24 @@ env:{
   USER_EMAIL: 'EmployeeTestAuto',
   USER_PASSWORD: '123',
 },
+reporter: 'cypress-mochawesome-reporter',
+  video: true,
+    reporterOptions: {
+      charts: true,
+      reportPageTitle: 'test results',
+      embeddedScreenshots: true,
+      inlineAssets: true,
+      saveAllAttempts: true,
+      html: true,
+      overwrite: true,
+      timestamp: 'mmddyyyy_HHMMss',
+      reportDir: 'cypress/Reports/Mochawsome-report',
+      
+    },
 
   e2e: {
     setupNodeEvents(on, config) {
+      require('cypress-mochawesome-reporter/plugin')(on);
       return on ('file:preprocessor', cucumber())
       // implement node event listeners here
     },
